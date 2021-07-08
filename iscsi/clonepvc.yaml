@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: seagate-pvc-clone-demo
+  namespace: demo
+spec:
+  dataSource:
+    name: seagate-pvc-demo
+    kind: PersistentVolumeClaim
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: seagate-storageclass-demo
+  resources:
+    requests:
+      storage: 1Gi
