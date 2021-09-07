@@ -7,4 +7,4 @@ deletionPolicy: Delete
 parameters:
   csi.storage.k8s.io/snapshotter-secret-name: seagate-enclosure001
   csi.storage.k8s.io/snapshotter-secret-namespace: seagate
-
+  volPrefix: snp  # Prefix for snapshot volumes, an underscore is appended
