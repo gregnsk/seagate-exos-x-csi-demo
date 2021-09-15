@@ -3,16 +3,16 @@ kind: StorageClass
 provisioner: csi-exos-x.seagate.com
 allowVolumeExpansion: true
 metadata:
-  name: seagate-storageclass-demo
+  name: storageclass-seagate
 parameters:
-  csi.storage.k8s.io/provisioner-secret-name: seagate-enclosure001
+  csi.storage.k8s.io/provisioner-secret-name: secret-seagate
   csi.storage.k8s.io/provisioner-secret-namespace: seagate
-  csi.storage.k8s.io/controller-publish-secret-name: seagate-enclosure001
+  csi.storage.k8s.io/controller-publish-secret-name: secret-seagate
   csi.storage.k8s.io/controller-publish-secret-namespace: seagate
-  csi.storage.k8s.io/controller-expand-secret-name: seagate-enclosure001
+  csi.storage.k8s.io/controller-expand-secret-name: secret-seagate
   csi.storage.k8s.io/controller-expand-secret-namespace: seagate
   fsType: ext4 # Desired filesystem
-  iqn: iqn.2015-11.com.hpe:storage.msa2040.163639c929 # Gallium 10.235.212.197 Appliance IQN
+  iqn: iqn.1992-09.com.seagate:01.array.00c0ff0afca8
   pool: A # Pool for volumes provisioning
-  portals: 10.235.212.199,10.235.212.200 # Comma separated list of portal ips. Gallium 10.235.212.197 Ports A1, B1
-  volPrefix: csi # Desired prefix for volume naming, an underscore is appended
+  portals: 172.9.1.22,172.9.1.23
+  volPrefix: stx # Desired prefix for volume naming, an underscore is appended

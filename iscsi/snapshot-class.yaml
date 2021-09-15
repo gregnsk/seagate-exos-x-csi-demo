@@ -1,10 +1,10 @@
 apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotClass
 metadata:
-  name: seagate-snapshotclass-demo
+  name: snapshotclass-seagate
 driver: csi-exos-x.seagate.com
 deletionPolicy: Delete
 parameters:
-  csi.storage.k8s.io/snapshotter-secret-name: seagate-enclosure001
+  csi.storage.k8s.io/snapshotter-secret-name: secret-seagate
   csi.storage.k8s.io/snapshotter-secret-namespace: seagate
   volPrefix: snp  # Prefix for snapshot volumes, an underscore is appended

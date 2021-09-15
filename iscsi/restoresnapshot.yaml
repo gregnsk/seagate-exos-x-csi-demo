@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: seagate-snapshot-pvc-restore-demo
+  name: pvc-restore-seagate
   namespace: demo
 spec:
   dataSource:
-    name: seagate-pvc-snapshot-demo
+    name: snapshot-seagate
     kind: VolumeSnapshot
     apiGroup: "snapshot.storage.k8s.io"
   accessModes:
     - ReadWriteOnce
-  storageClassName: seagate-storageclass-demo
+  storageClassName: storageclass-seagate
   resources:
     requests:
       storage: 1Gi
