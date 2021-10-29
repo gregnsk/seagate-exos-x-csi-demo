@@ -84,12 +84,17 @@ for inst in $ClusterInstances; do echo $inst; aws ec2 modify-instance-attribute 
 ```
 # Update the Operating System
 for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo yum update -y; done
+```
 
+```
 #Update /etc/hosts on all worker nodes
 aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].{IP:PrivateIpAddress,Name:PrivateDnsName}" --output text | tr '\.' ' ' | awk '{print $1"."$2"."$3"."$4" "$5" "$5"."$6"."$7"."$8}' > hosts.addon.$ClusterTag
 
 for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS hosts.addon.$ClusterTag centos@$ip:/tmp; ssh $SSH_FLAGS centos@$ip "cat /etc/hosts /tmp/hosts.addon.$ClusterTag > /tmp/hosts.$ClusterTag; sudo cp /tmp/hosts.$ClusterTag /etc/hosts"; done
+```
 
+Install Docker
+```
 # Install Docker
 for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum -y install docker-ce docker-ce-cli containerd.io; sudo systemctl start docker; sudo systemctl enable docker; sudo usermod -aG docker centos"; done
 ```
