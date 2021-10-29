@@ -239,7 +239,7 @@ This script pulls required container images from various repositories.
 Consul image is pulled from the Docker Hub repository, where you may run into rate limits.
 If this happens run the following command to overcome the limits (requires Docker account):
 ```
-for ip in $ClusterIPs; do ssh $SSH_FLAGS centos@$ip docker login --username=<Docker username> --password <Docker password>; docker pull hashicorp/consul:1.10.0; docker pull busybox; docker pull docker.io/calico/apiserver:v3.20.2; docker pull docker.io/calico/node:v3.20.2; docker pull docker.io/gluster/gluster-centos:latest" & done
+for ip in $ClusterIPs; do ssh $SSH_FLAGS centos@$ip docker login --username=<Docker username> --password <Docker password>; docker pull hashicorp/consul:1.10.0; docker pull busybox; docker pull docker.io/calico/apiserver:v3.20.2; docker pull docker.io/calico/node:v3.20.2; docker pull docker.io/gluster/gluster-centos:latest;  docker pull docker.io/calico/pod2daemon-flexvol:v3.20.2; docker pull docker.io/calico/typha:v3.20.2; docker pull docker.io/calico/cni:v3.20.2; docker pull docker.io/calico/kube-controllers:v3.20.2" & done
 ```
 
 
