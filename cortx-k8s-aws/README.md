@@ -151,7 +151,9 @@ At this stage a single node Kubernetes cluster should be provisioned. Copy "kube
 ### 2.7 Complete Kubernetes post-installation tasks and deploy Calico
 ```
 ssh $SSH_FLAGS centos@$ClusterControlPlaneIP "mkdir -p .kube; sudo cp -i /etc/kubernetes/admin.conf .kube/config; sudo chown $(id -u):$(id -g) .kube/config"
+```
 
+```
 #Install Calico CNI
 ssh $SSH_FLAGS centos@$ClusterControlPlaneIP "kubectl create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml; kubectl create -f https://docs.projectcalico.org/manifests/custom-resources.yaml"
 
