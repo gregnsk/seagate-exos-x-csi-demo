@@ -309,8 +309,14 @@ aws --no-verify-ssl --endpoint-url https://$DATA_IP:9443 iam create-access-key -
 aws --no-verify-ssl --endpoint-url https://$DATA_IP:9443 iam list-users
 
 # Create an S3 bucket and upload a file 
-aws --no-verify-ssl --endpoint-url https://$DATA_IP:443 s3 ls
-aws --no-verify-ssl --endpoint-url https://$DATA_IP:443 s3 mb s3://cortx-aws-works
-aws --no-verify-ssl --endpoint-url https://$DATA_IP:443 s3 cp awscliv2.zip s3://cortx-aws-works
+aws --no-verify-ssl --endpoint-url http://$DATA_IP:80 s3 ls
+aws --no-verify-ssl --endpoint-url http://$DATA_IP:80 s3 mb s3://cortx-aws-works
+aws --no-verify-ssl --endpoint-url http://$DATA_IP:80 s3 cp awscliv2.zip s3://cortx-aws-works
 ```
 
+### 4.4 Test performance using s3-benchmark
+```
+curl -OL https://github.com/dvassallo/s3-benchmark/raw/master/build/linux-amd64/s3-benchmark
+chmod +x s3-benchmark
+./s3-benchmark -bucket-name s3-benchmark -endpoint http://$DATA_IP:80
+```
