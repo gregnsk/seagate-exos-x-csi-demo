@@ -235,6 +235,14 @@ AWS EC2 instances provisioned on step 2.2 have 1 disk for 3rd party apps (/dev/n
 for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "cd cortx-k8s/k8_cortx_cloud; sudo ./prereq-deploy-cortx-cloud.sh /dev/nvme7n1" ; done
 ```
 
+This script pulls required container images from various repositories.
+Consul image is pulled from the Docker Hub repository, where you may run into rate limits.
+If this happens run the following command to overcome the limits (requires Docker account):
+```
+for ip in $ClusterIPs; do ssh $SSH_FLAGS centos@$ip docker login --username=<Docker username> --password <Docker password>; docker pull hashicorp/consul:1.10.0 & done
+```
+
+
 ### 3.5 Deploy CORTX
 ```
 ssh $SSH_FLAGS centos@$ClusterControlPlaneIP "cd cortx-k8s/k8_cortx_cloud/; ./deploy-cortx-cloud.sh"
