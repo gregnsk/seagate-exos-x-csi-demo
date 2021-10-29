@@ -69,11 +69,12 @@ ClusterIPs=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTa
 ClusterInstances=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].InstanceId" --output text`
 # Designate one of the instances as a ControlPlane node
 ClusterControlPlaneInstance=`echo $ClusterInstances | awk '{print $1}'`
-ClusterControlPlaneIP=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=true --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`
 
 # Tag all cluster nodes based on their role
 for inst in $ClusterInstances; do echo $inst; aws ec2 create-tags --resources $inst --tags Key=CortxClusterControlPlane,Value=false; done
 aws ec2 create-tags --resources $ClusterControlPlaneInstance --tags Key=CortxClusterControlPlane,Value=true
+
+ClusterControlPlaneIP=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=true --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`
 
 # Disable source/destination checking - required for Calico networking in AWS
 for inst in $ClusterInstances; do echo $inst; aws ec2 modify-instance-attribute --instance-id=$inst --no-source-dest-check; done
