@@ -104,13 +104,16 @@ for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "sudo yum install 
 cat <<EOF | tee modules-k8s.conf
 br_netfilter
 EOF
+
 cat <<EOF | tee sysctl-k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 
 for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS *-k8s.conf centos@$ip: ; ssh $SSH_FLAGS centos@$ip "sudo cp modules-k8s.conf /etc/modules-load.d/k8s.conf; sudo cp sysctl-k8s.conf /etc/sysctl.d/k8s.conf; sudo sysctl --system"; done
+```
 
+```
 cat <<EOF | tee kubernetes.repo
 [kubernetes]
 name=Kubernetes
