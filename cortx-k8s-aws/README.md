@@ -1,5 +1,5 @@
 # CORTX on AWS and Kubernetes - Quick Install Guide
-This procedure may work for any Kubernetes cluster. We recommend to go through the entire document even if you're not planning to deploy CORTX in AWS.
+This procedure should work for any Kubernetes cluster. We recommend to go through the entire document even if you're not planning to deploy CORTX in AWS.
 Actual CORTX deployment into an existing Kubernetes cluster is covered in section 3.
 
 ## 1. Prerequisites
