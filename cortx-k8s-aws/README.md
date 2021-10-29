@@ -25,7 +25,7 @@ The following environment should exist in AWS prior to further deployment:
 
 CORTX requires Kubernetes cluster for installation. In the current release such cluster must have at least 3 worker nodes.
  - Every node must have at least 8 cores and 16 GB of RAM. 
- - While there should be no dependencies on the underlying OS, this procedure was tested with CentOS 7.9 and Kubernetes 1.22
+ - While there should be no dependencies on the underlying OS this procedure was tested with CentOS 7.9 and Kubernetes 1.22
  - In the current release, every node should have the following storage configuration:
    - OS disk (in the example below we'll provision 50GB)
    - Disk for 3rd party applications required for normal CORTX installation (25GB in this procedure)
@@ -168,7 +168,7 @@ git clone –b stable git@github.com:Seagate/cortx-k8s.git
 CORTX deployment framework can be configured through a single file  cortx-k8s/k8_cortx_cloud/solution.yaml
 Key configuration changes: list of worker nodes, Kubernetes namespace and disks layout
 
-AWS EC2 instances provisioned at step 2.2 have 2 metadata and 4 data disks defined. Update "storage" section in the cortx-k8s/k8_cortx_cloud/solution.yaml:
+AWS EC2 instances provisioned on step 2.2 have 2 metadata and 4 data disks defined. Update "storage" section in the cortx-k8s/k8_cortx_cloud/solution.yaml:
 ```
   storage:
     cvg1:
@@ -216,7 +216,7 @@ for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS -r cortx-k8s centos@$ip: ; do
 ### 3.4 Execute pre-installation script on all worker nodes
 This step will not be required in the future version
 It will configure storage for the 3rd party applications and make additional preparations for the future installation.
-AWS EC2 instances provisioned at step 2.2 have 1 disk for 3rd party apps (/dev/nvme7n1)
+AWS EC2 instances provisioned on step 2.2 have 1 disk for 3rd party apps (/dev/nvme7n1)
 
 ```
 for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "cd cortx-k8s/k8_cortx_cloud; sudo ./prereq-deploy-cortx-cloud.sh /dev/nvme7n1" ; done
