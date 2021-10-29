@@ -84,7 +84,7 @@ for inst in $ClusterInstances; do echo $inst; aws ec2 modify-instance-attribute 
 ### 2.4 Install required SW packages
 ```
 # Update the Operating System
-for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo yum update -y; done
+for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo yum update -y & done
 ```
 
 ```
@@ -97,7 +97,7 @@ for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS hosts.addon.$ClusterTag cento
 Install Docker
 ```
 # Install Docker
-for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum -y install docker-ce docker-ce-cli containerd.io; sudo systemctl start docker; sudo systemctl enable docker; sudo usermod -aG docker centos"; done
+for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum -y install docker-ce docker-ce-cli containerd.io; sudo systemctl start docker; sudo systemctl enable docker; sudo usermod -aG docker centos" & done
 ```
 
 ### 2.5 Prepare for Kubernetes installation
@@ -126,7 +126,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS kubernetes.repo centos@$ip: ; ssh $SSH_FLAGS centos@$ip "sudo cp kubernetes.repo /etc/yum.repos.d/kubernetes.repo; sudo setenforce 0; sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config; sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes; sudo systemctl enable --now kubelet"; done
+for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS kubernetes.repo centos@$ip: ; ssh $SSH_FLAGS centos@$ip "sudo cp kubernetes.repo /etc/yum.repos.d/kubernetes.repo; sudo setenforce 0; sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config; sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes; sudo systemctl enable --now kubelet" & done
 ```
 
 ### 2.6 Install Kubernetes
@@ -167,7 +167,7 @@ ssh $SSH_FLAGS centos@$ClusterControlPlaneIP kubectl taint nodes --all node-role
 ### 2.8 Join all worker nodes to the cluster
 <b>Replace "kubadm join" command below with the parameters provided by kubeadm init at the end of stage 2.6</b>
 ```
-for ip in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=false --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo kubeadm join 10.0.1.35:6443 --token lp3nor.gw9waj1z1w63ufkf --discovery-token-ca-cert-hash sha256:522da6716b32a05ebcc5df58739ad32d2e81e44e0c9becaeec9ea78430d15c8f;  done
+for ip in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=false --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo kubeadm join 10.0.1.35:6443 --token lp3nor.gw9waj1z1w63ufkf --discovery-token-ca-cert-hash sha256:522da6716b32a05ebcc5df58739ad32d2e81e44e0c9becaeec9ea78430d15c8f &  done
 ```
 
 At this stage the Kubernetes cluster should be fully operational
@@ -232,14 +232,14 @@ It will configure storage for the 3rd party applications and make additional pre
 AWS EC2 instances provisioned on step 2.2 have 1 disk for 3rd party apps (/dev/nvme7n1)
 
 ```
-for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "cd cortx-k8s/k8_cortx_cloud; sudo ./prereq-deploy-cortx-cloud.sh /dev/nvme7n1" ; done
+for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "cd cortx-k8s/k8_cortx_cloud; sudo ./prereq-deploy-cortx-cloud.sh /dev/nvme7n1" & done
 ```
 
 This script pulls required container images from various repositories.
 Consul image is pulled from the Docker Hub repository, where you may run into rate limits.
 If this happens run the following command to overcome the limits (requires Docker account):
 ```
-for ip in $ClusterIPs; do ssh $SSH_FLAGS centos@$ip docker login --username=<Docker username> --password <Docker password>; docker pull hashicorp/consul:1.10.0 & done
+for ip in $ClusterIPs; do ssh $SSH_FLAGS centos@$ip docker login --username=<Docker username> --password <Docker password>; docker pull hashicorp/consul:1.10.0; docker pull busybox; docker pull docker.io/calico/apiserver:v3.20.2; docker pull docker.io/calico/node:v3.20.2; docker pull docker.io/gluster/gluster-centos:latest" & done
 ```
 
 
@@ -254,7 +254,9 @@ Test that all pods are running and that CORTX is ready
 ssh $SSH_FLAGS centos@$ClusterControlPlaneIP
 
 kubectl get pod
-kubectl exec -i cortx-data-pod-[replace with one of the data pod names] -c cortx-motr-hax -- hctl status
+
+DataPod=`kubectl get pod | grep cortx-data-pod | grep Running | awk '{print $1}' | head -1`
+kubectl exec -i $DataPod -c cortx-motr-hax -- hctl status
 ```
 
 At this stage the environment should look like on this picture:
