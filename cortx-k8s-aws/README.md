@@ -322,3 +322,11 @@ curl -OL https://github.com/dvassallo/s3-benchmark/raw/master/build/linux-amd64/
 chmod +x s3-benchmark
 ./s3-benchmark -bucket-name s3-benchmark -endpoint http://$DATA_IP:80
 ```
+
+## 5 IPs and Ports to communicate with CORTX
+CORTX on Kubernetes has an IP for management interface. Access it via cortx-control-clusterip-svc K8s service. By default, CSM is 
+| Interface | IP(s) | Port(s)
+| --- | --- | --- |
+| Management | cortx-control-clusterip-svc K8s service | tcp/8081
+| S3 | Multiple IPs (cortx-data-clusterip-svc pods) | tcp/443, tcp/80
+| IAM | Multiple IPs (cortx-data-clusterip-svc pods) | tcp/9443
