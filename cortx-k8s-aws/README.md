@@ -324,7 +324,6 @@ chmod +x s3-benchmark
 ```
 
 ## 5 IPs and Ports to communicate with CORTX
-CORTX on Kubernetes has an IP for management interface. Access it via cortx-control-clusterip-svc K8s service. By default, CSM is 
 | Interface | IP(s) | Port(s)
 | --- | --- | --- |
 | Management | cortx-control-clusterip-svc K8s service | tcp/8081
