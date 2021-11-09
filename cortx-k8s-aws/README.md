@@ -100,6 +100,14 @@ Install Docker
 for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum -y install docker-ce docker-ce-cli containerd.io; sudo systemctl start docker; sudo systemctl enable docker; sudo usermod -aG docker centos" & done
 ```
 
+#### 2.4.1 Optional: pull container images to overcome Docker Hub rate limits
+Docker hub sets pull rate limits for anonymous requests which may cause issues with the future installation. You may need an account on Docker Hub to pull required public images on all worker nodes.
+Use the following command to do so (replace username and password)
+```
+for ip in $ClusterIPs; do ssh $SSH_FLAGS centos@$ip docker login --username=<Docker username> --password <Docker password>; docker pull hashicorp/consul:1.10.0; docker pull busybox; docker pull docker.io/calico/apiserver:v3.20.2; docker pull docker.io/calico/node:v3.20.2; docker pull docker.io/gluster/gluster-centos:latest;  docker pull docker.io/calico/pod2daemon-flexvol:v3.20.2; docker pull docker.io/calico/typha:v3.20.2; docker pull docker.io/calico/cni:v3.20.2; docker pull docker.io/calico/kube-controllers:v3.20.2; docker pull docker.io/gluster/gluster-centos:latest" & done
+```
+
+
 ### 2.5 Prepare for Kubernetes installation
 ```
 cat <<EOF | tee modules-k8s.conf
@@ -220,6 +228,29 @@ Update list of the worker nodes in the configuration file. Actual list can be ge
 i=0; for name in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].{IP:PrivateDnsName}" --output text`; do ((i=i+1)); echo "    node${i}:"; echo "      name: ${name}";  done
 ```
 
+#### 3.2.1 Advanced configuration updates
+<details>
+  <summary> Click here to get more details about other configuration paramaters </summary>
+
+
+  ## Data and metadata protection
+  Current CORTX deployment script expects identical storage layout on all nodes. In the example above we're adding 2 volume groups (CVGs) per node.
+  SNS refers to data protection, and is defined as "N+K+S", where N represents data chunks, K - parity chunks and S - spares. Currently no spares are supported. 
+  And the number of N+K should be smaller than number of nodes multiplied by number of CVGs per node
+
+  DIX refers to metadata protection. Current CORTX implementation supports replication for metadata, and DIX configuration should be specified as 1+K+0, where K defines number of replicas.
+
+  For example for a 3-node cluster with 2 CVGs the configuration could be:
+        durability:
+        sns: 4+2+0
+        dix: 1+2+0
+  
+  ## Number of S3 and Motr instances
+  With the VM-based setup (like in this AWS example) number of Motr instances should be set to 25-33% of the total CPU cores. This value should be rounded down to the nearest Prime Number.
+  In this demo we're using AWS c5.2xlarge instances with 8 cores, so the default solution.yaml sets number of instances to 2. This number could be increased on a host with more cores.
+
+</details>
+
 ### 3.3 Copy updated framework to all worker nodes
 This step will not be required in the future version
 ```
@@ -235,13 +266,11 @@ AWS EC2 instances provisioned on step 2.2 have 1 disk for 3rd party apps (/dev/n
 for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "cd cortx-k8s/k8_cortx_cloud; sudo ./prereq-deploy-cortx-cloud.sh /dev/nvme7n1" & done
 ```
 
-This script pulls required container images from various repositories.
-Consul image is pulled from the Docker Hub repository, where you may run into rate limits.
-If this happens run the following command to overcome the limits (requires Docker account):
+#### 3.4.1 Install Helm on the cluster control plane
+Current script version doesn't deploy Helm - it will be fixed later.
 ```
-for ip in $ClusterIPs; do ssh $SSH_FLAGS centos@$ip docker login --username=<Docker username> --password <Docker password>; docker pull hashicorp/consul:1.10.0; docker pull busybox; docker pull docker.io/calico/apiserver:v3.20.2; docker pull docker.io/calico/node:v3.20.2; docker pull docker.io/gluster/gluster-centos:latest;  docker pull docker.io/calico/pod2daemon-flexvol:v3.20.2; docker pull docker.io/calico/typha:v3.20.2; docker pull docker.io/calico/cni:v3.20.2; docker pull docker.io/calico/kube-controllers:v3.20.2; docker pull docker.io/gluster/gluster-centos:latest" & done
+ssh $SSH_FLAGS centos@$ClusterControlPlaneIP "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3; chmod 700 get_helm.sh; ./get_helm.sh"
 ```
-
 
 ### 3.5 Deploy CORTX
 ```
