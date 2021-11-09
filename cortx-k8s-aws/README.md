@@ -244,8 +244,8 @@ i=0; for name in `aws ec2 describe-instances --filters Name=tag:Name,Values=$Clu
   For example for a 3-node cluster with 2 CVGs the configuration could be:
 ```
         durability:
-        sns: 4+2+0
-        dix: 1+2+0
+           sns: 4+2+0
+           dix: 1+2+0
 ```
   
   ##### Number of S3 and Motr instances
