@@ -236,8 +236,11 @@ i=0; for name in `aws ec2 describe-instances --filters Name=tag:Name,Values=$Clu
   ##### Data and metadata protection
   Current CORTX deployment script expects identical storage layout on all nodes. In the example above we're adding 2 volume groups (CVGs) per node.
 
-  SNS refers to data protection, and is defined as "N+K+S", where N represents data chunks, K - parity chunks and S - spares. Currently no spares are supported. 
-  And the number of N+K should be smaller than number of nodes multiplied by number of CVGs per node
+  SNS refers to data protection, and is defined as "N+K+S"
+  * N - number of data chunks
+  * K - number of parity chunks or a number of failed CVGs the cluster can withstand without loosing data 
+  * S - number of spares. Currently no spares are supported. 
+  * N+K should be smaller than the number of nodes multiplied by the number of CVGs per node.
 
   DIX refers to metadata protection. Current CORTX implementation supports replication for metadata. DIX configuration should be specified as 1+K+0, where K defines number of replicas.
 
