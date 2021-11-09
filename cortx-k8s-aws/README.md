@@ -228,24 +228,27 @@ Update list of the worker nodes in the configuration file. Actual list can be ge
 i=0; for name in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].{IP:PrivateDnsName}" --output text`; do ((i=i+1)); echo "    node${i}:"; echo "      name: ${name}";  done
 ```
 
-#### 3.2.1 Advanced configuration updates
+#### 3.2.1 Advanced configuration options
 <details>
-  <summary> Click here to get more details about other configuration paramaters </summary>
+  <summary> Click here to get more details about other configuration parameters </summary>
 
 
-  ## Data and metadata protection
+  ##### Data and metadata protection
   Current CORTX deployment script expects identical storage layout on all nodes. In the example above we're adding 2 volume groups (CVGs) per node.
+
   SNS refers to data protection, and is defined as "N+K+S", where N represents data chunks, K - parity chunks and S - spares. Currently no spares are supported. 
   And the number of N+K should be smaller than number of nodes multiplied by number of CVGs per node
 
-  DIX refers to metadata protection. Current CORTX implementation supports replication for metadata, and DIX configuration should be specified as 1+K+0, where K defines number of replicas.
+  DIX refers to metadata protection. Current CORTX implementation supports replication for metadata. DIX configuration should be specified as 1+K+0, where K defines number of replicas.
 
   For example for a 3-node cluster with 2 CVGs the configuration could be:
+```
         durability:
         sns: 4+2+0
         dix: 1+2+0
+```
   
-  ## Number of S3 and Motr instances
+  ##### Number of S3 and Motr instances
   With the VM-based setup (like in this AWS example) number of Motr instances should be set to 25-33% of the total CPU cores. This value should be rounded down to the nearest Prime Number.
   In this demo we're using AWS c5.2xlarge instances with 8 cores, so the default solution.yaml sets number of instances to 2. This number could be increased on a host with more cores.
 
