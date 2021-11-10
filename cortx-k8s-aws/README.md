@@ -32,6 +32,10 @@ CORTX requires Kubernetes cluster for installation. In the current release such 
    - Disk for internal logs (currently not in use, 25GB in the example below)
    - Disks for customers' data and metadata. In this demo we'll provision 2 disks for metadata and 4 disks for data (25GB each)
 
+This procedure was tested within the following limits:
+- Number of nodes in the cluster: 1 - 15
+- Number of Motr (data+metadata) drives per node: 6 - 106
+
 If you already have a suitable Kubernetes cluster please proceed to step 3 - CORTX Deployment
 
 ### 2.1 Define basic cluster configuration
