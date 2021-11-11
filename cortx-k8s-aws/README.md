@@ -34,7 +34,8 @@ CORTX requires Kubernetes cluster for installation. In the current release such 
 
 This procedure was tested within the following limits:
 - Number of nodes in the cluster: 1 - 15
-- Number of Motr (data+metadata) drives per node: 3 - 106
+- Number of Motr (data+metadata) drives per node: 3 - 21 
+  - A configuration of 100+ drives per node was also tested outside of AWS
 
 If you already have a suitable Kubernetes cluster please proceed to step 3 - CORTX Deployment
 
