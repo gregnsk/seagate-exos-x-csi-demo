@@ -49,6 +49,8 @@ ClusterTag=cortx-k8s-cl03
 SubnetId=subnet-070838693db278eab
 # Security Group ID for the cluster
 SecurityGroupId=sg-0585145ff6b831b77
+# CentOS 7.9 AMI ID. See https://wiki.centos.org/Cloud/AWS 
+AmiID=ami-08d2d8b00f270d03b
 # Key pair name for all instances
 KeyPair=cortx-k8s-test
 # Define SSH flags for connectivity from the bastion host to CORTX nodes
@@ -61,7 +63,7 @@ cd $ClusterTag
 ### 2.2 Launch new instances 
 This command will launch specified number of EC2 c5.2xlarge instances with CentOS 7.9 and required storage configuration
 ```
-aws ec2 run-instances --image-id ami-08d2d8b00f270d03b --count $ClusterNodes --instance-type c5.2xlarge --subnet-id $SubnetId --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"SnapshotId\":\"snap-09d731c1a0b1ff4cb\",\"VolumeSize\":50,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdd\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sde\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdf\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdg\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdh\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdi\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}]" --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value='$ClusterTag'}]' 'ResourceType=volume,Tags=[{Key=Name,Value='$ClusterTag'}]'    --key-name $KeyPair --security-group-ids $SecurityGroupId
+aws ec2 run-instances --image-id $AmiID --count $ClusterNodes --instance-type c5.2xlarge --subnet-id $SubnetId --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"SnapshotId\":\"snap-09d731c1a0b1ff4cb\",\"VolumeSize\":50,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdd\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sde\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdf\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdg\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdh\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdi\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}]" --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value='$ClusterTag'}]' 'ResourceType=volume,Tags=[{Key=Name,Value='$ClusterTag'}]'    --key-name $KeyPair --security-group-ids $SecurityGroupId
 ```
 
 Wait until all instances get into Running state.
@@ -69,9 +71,9 @@ Wait until all instances get into Running state.
 ### 2.3 Additional preparations for Kubernetes setup
 ```
 # List of all private IPs 
-ClusterIPs=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text | tr '\n' ' '`
+ClusterIPs=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text | tr '\n' ' '`
 # List of all Instance IDs 
-ClusterInstances=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].InstanceId" --output text`
+ClusterInstances=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].InstanceId" --output text`
 # Designate one of the instances as a ControlPlane node
 ClusterControlPlaneInstance=`echo $ClusterInstances | awk '{print $1}'`
 
@@ -79,7 +81,7 @@ ClusterControlPlaneInstance=`echo $ClusterInstances | awk '{print $1}'`
 for inst in $ClusterInstances; do echo $inst; aws ec2 create-tags --resources $inst --tags Key=CortxClusterControlPlane,Value=false; done
 aws ec2 create-tags --resources $ClusterControlPlaneInstance --tags Key=CortxClusterControlPlane,Value=true
 
-ClusterControlPlaneIP=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=true --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`
+ClusterControlPlaneIP=`aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=true Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`
 
 # Disable source/destination checking - required for Calico networking in AWS
 for inst in $ClusterInstances; do echo $inst; aws ec2 modify-instance-attribute --instance-id=$inst --no-source-dest-check; done
@@ -94,7 +96,7 @@ for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo yum update -y
 
 ```
 #Update /etc/hosts on all worker nodes
-aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].{IP:PrivateIpAddress,Name:PrivateDnsName}" --output text | tr '\.' ' ' | awk '{print $1"."$2"."$3"."$4" "$5" "$5"."$6"."$7"."$8}' > hosts.addon.$ClusterTag
+aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].{IP:PrivateIpAddress,Name:PrivateDnsName}" --output text | tr '\.' ' ' | awk '{print $1"."$2"."$3"."$4" "$5" "$5"."$6"."$7"."$8}' > hosts.addon.$ClusterTag
 
 for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS hosts.addon.$ClusterTag centos@$ip:/tmp; ssh $SSH_FLAGS centos@$ip "cat /etc/hosts /tmp/hosts.addon.$ClusterTag > /tmp/hosts.$ClusterTag; sudo cp /tmp/hosts.$ClusterTag /etc/hosts"; done
 ```
@@ -180,7 +182,7 @@ ssh $SSH_FLAGS centos@$ClusterControlPlaneIP kubectl taint nodes --all node-role
 ### 2.8 Join all worker nodes to the cluster
 <b>Replace "kubadm join" command below with the parameters provided by kubeadm init at the end of stage 2.6</b>
 ```
-for ip in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=false --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo kubeadm join 10.0.1.35:6443 --token lp3nor.gw9waj1z1w63ufkf --discovery-token-ca-cert-hash sha256:522da6716b32a05ebcc5df58739ad32d2e81e44e0c9becaeec9ea78430d15c8f &  done
+for ip in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=false Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo kubeadm join 10.0.1.35:6443 --token lp3nor.gw9waj1z1w63ufkf --discovery-token-ca-cert-hash sha256:522da6716b32a05ebcc5df58739ad32d2e81e44e0c9becaeec9ea78430d15c8f &  done
 ```
 
 At this stage the Kubernetes cluster should be fully operational
@@ -230,7 +232,7 @@ AWS EC2 instances provisioned on step 2.2 have 2 metadata and 4 data disks defin
 Update list of the worker nodes in the configuration file. Actual list can be generated using the following command:
 
 ```
-i=0; for name in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag --query "Reservations[*].Instances[*].{IP:PrivateDnsName}" --output text`; do ((i=i+1)); echo "    node${i}:"; echo "      name: ${name}";  done
+i=0; for name in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].{IP:PrivateDnsName}" --output text`; do ((i=i+1)); echo "    node${i}:"; echo "      name: ${name}";  done
 ```
 
 #### 3.2.1 Advanced configuration options
