@@ -91,7 +91,7 @@ for inst in $ClusterInstances; do echo $inst; aws ec2 modify-instance-attribute 
 ### 2.4 Install required SW packages
 ```
 # Update the Operating System
-for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo yum update -y & done
+for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo yum update -y </dev/null & done
 ```
 
 ```
@@ -104,7 +104,7 @@ for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS hosts.addon.$ClusterTag cento
 Install Docker
 ```
 # Install Docker
-for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum -y install docker-ce docker-ce-cli containerd.io; sudo systemctl start docker; sudo systemctl enable docker; sudo usermod -aG docker centos" & done
+for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum -y install docker-ce docker-ce-cli containerd.io; sudo systemctl start docker; sudo systemctl enable docker; sudo usermod -aG docker centos" </dev/null & done
 ```
 
 #### 2.4.1 Optional: pull container images to overcome Docker Hub rate limits
@@ -141,7 +141,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS kubernetes.repo centos@$ip: ; ssh $SSH_FLAGS centos@$ip "sudo cp kubernetes.repo /etc/yum.repos.d/kubernetes.repo; sudo setenforce 0; sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config; sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes; sudo systemctl enable --now kubelet" & done
+for ip in $ClusterIPs; do echo $ip; scp $SSH_FLAGS kubernetes.repo centos@$ip: ; ssh $SSH_FLAGS centos@$ip "sudo cp kubernetes.repo /etc/yum.repos.d/kubernetes.repo; sudo setenforce 0; sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config; sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes; sudo systemctl enable --now kubelet" </dev/null & done
 ```
 
 ### 2.6 Install Kubernetes
@@ -182,7 +182,7 @@ ssh $SSH_FLAGS centos@$ClusterControlPlaneIP kubectl taint nodes --all node-role
 ### 2.8 Join all worker nodes to the cluster
 <b>Replace "kubadm join" command below with the parameters provided by kubeadm init at the end of stage 2.6</b>
 ```
-for ip in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=false Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo kubeadm join 10.0.1.35:6443 --token lp3nor.gw9waj1z1w63ufkf --discovery-token-ca-cert-hash sha256:522da6716b32a05ebcc5df58739ad32d2e81e44e0c9becaeec9ea78430d15c8f &  done
+for ip in `aws ec2 describe-instances --filters Name=tag:Name,Values=$ClusterTag Name=tag:CortxClusterControlPlane,Values=false Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].{IP:PrivateIpAddress}" --output text`; do echo $ip; ssh $SSH_FLAGS centos@$ip sudo kubeadm join 10.0.1.35:6443 --token lp3nor.gw9waj1z1w63ufkf --discovery-token-ca-cert-hash sha256:522da6716b32a05ebcc5df58739ad32d2e81e44e0c9becaeec9ea78430d15c8f </dev/null &  done
 ```
 
 At this stage the Kubernetes cluster should be fully operational
@@ -276,7 +276,7 @@ It will configure storage for the 3rd party applications and make additional pre
 AWS EC2 instances provisioned on step 2.2 have 1 disk for 3rd party apps (/dev/nvme7n1)
 
 ```
-for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "cd cortx-k8s/k8_cortx_cloud; sudo ./prereq-deploy-cortx-cloud.sh /dev/nvme7n1" & done
+for ip in $ClusterIPs; do echo $ip; ssh $SSH_FLAGS centos@$ip "cd cortx-k8s/k8_cortx_cloud; sudo ./prereq-deploy-cortx-cloud.sh /dev/nvme7n1" </dev/null & done
 ```
 
 #### 3.4.1 Install Helm on the cluster control plane
