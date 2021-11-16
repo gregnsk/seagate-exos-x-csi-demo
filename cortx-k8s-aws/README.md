@@ -51,6 +51,8 @@ SubnetId=subnet-070838693db278eab
 SecurityGroupId=sg-0585145ff6b831b77
 # CentOS 7.9 AMI ID. See https://wiki.centos.org/Cloud/AWS 
 AmiID=ami-08d2d8b00f270d03b
+# Instance type
+InstanceType=c5.2xlarge
 # Key pair name for all instances
 KeyPair=cortx-k8s-test
 # Define SSH flags for connectivity from the bastion host to CORTX nodes
@@ -63,7 +65,7 @@ cd $ClusterTag
 ### 2.2 Launch new instances 
 This command will launch specified number of EC2 c5.2xlarge instances with CentOS 7.9 and required storage configuration
 ```
-aws ec2 run-instances --image-id $AmiID --count $ClusterNodes --instance-type c5.2xlarge --subnet-id $SubnetId --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"SnapshotId\":\"snap-09d731c1a0b1ff4cb\",\"VolumeSize\":50,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdd\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sde\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdf\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdg\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdh\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdi\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}]" --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value='$ClusterTag'}]' 'ResourceType=volume,Tags=[{Key=Name,Value='$ClusterTag'}]'    --key-name $KeyPair --security-group-ids $SecurityGroupId
+aws ec2 run-instances --image-id $AmiID --count $ClusterNodes --instance-type $InstanceType --subnet-id $SubnetId --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"VolumeSize\":50,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdd\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sde\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdf\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdg\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdh\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}, {\"DeviceName\":\"/dev/sdi\",\"Ebs\":{\"VolumeSize\":25,\"DeleteOnTermination\":true}}]" --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value='$ClusterTag'}]' 'ResourceType=volume,Tags=[{Key=Name,Value='$ClusterTag'}]'    --key-name $KeyPair --security-group-ids $SecurityGroupId
 ```
 
 Wait until all instances get into Running state.
