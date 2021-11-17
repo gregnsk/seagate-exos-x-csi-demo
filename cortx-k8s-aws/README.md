@@ -295,6 +295,7 @@ ssh $SSH_FLAGS centos@$ClusterControlPlaneIP "cd cortx-k8s/k8_cortx_cloud/; ./de
 <b> This step completes CORTX installation </b>
 Test that all pods are running and that CORTX is ready
 ```
+
 ssh $SSH_FLAGS centos@$ClusterControlPlaneIP
 
 kubectl get pod
@@ -303,6 +304,10 @@ DataPod=`kubectl get pod | grep cortx-data-pod | grep Running | awk '{print $1}'
 kubectl exec -i $DataPod -c cortx-motr-hax -- hctl status
 ```
 In the hctl status output validate that all services are "started". It may take several minutes for s3server instances to move from "offline" to "started"
+
+#### 3.5.1 Destroy CORTX cluster
+Note: to rollback step 3.5 and destroy the CORTX cluster run:
+ssh $SSH_FLAGS centos@$ClusterControlPlaneIP "cd cortx-k8s/k8_cortx_cloud/; ./destroy-cortx-cloud.sh"
 
 At this stage the environment should look like on this picture:
  <p align="center">
