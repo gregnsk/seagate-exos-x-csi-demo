@@ -1,3 +1,8 @@
+# THIS VERSION IS OBSOLETE.
+# FIND THE LATEST ONE IN https://github.com/Seagate/cortx-k8s/blob/stable/doc/cortx-aws-k8s-installation.md
+
+
+
 # CORTX on AWS and Kubernetes - Quick Install Guide
 This procedure should work for any Kubernetes cluster. We recommend to go through the entire document even if you're not planning to deploy CORTX in AWS.
 Actual CORTX deployment into an existing Kubernetes cluster is covered in section 3.
