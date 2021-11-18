@@ -23,7 +23,7 @@ The following environment should exist in AWS prior to further deployment:
 
 ## 2. Kubernetes cluster provisioning
 
-CORTX requires Kubernetes cluster for installation. In the current release such cluster must have at least 3 worker nodes.
+CORTX requires Kubernetes cluster for installation.
  - Every node must have at least 8 cores and 16 GB of RAM. 
  - While there should be no dependencies on the underlying OS this procedure was tested with CentOS 7.9 and Kubernetes 1.22
  - In the current release, every node should have the following storage configuration:
@@ -31,6 +31,7 @@ CORTX requires Kubernetes cluster for installation. In the current release such 
    - Disk for 3rd party applications required for normal CORTX installation (25GB in this procedure)
    - Disk for internal logs (currently not in use, 25GB in the example below)
    - Disks for customers' data and metadata. In this demo we'll provision 2 disks for metadata and 4 disks for data (25GB each)
+   - Disks layout (device names and sizes) must be identical on all nodes in the cluster
 
 This procedure was tested within the following limits:
 - Number of nodes in the cluster: 1 - 15
